@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>宏利 & 友邦保费预缴优惠计算</title>
+  <title>保费预缴优惠计算（宏利 & 友邦 & 安盛）</title>
   <style>
     :root{
       --bg:#f6f8fb;
@@ -161,24 +161,24 @@
 
     .actions{
       display:flex;
+      justify-content:flex-end;
       gap:10px;
       flex-wrap:wrap;
       margin-top:16px;
     }
 
     .btn{
-      border:1px solid var(--line);
-      background:#fff;
+      border:1px solid var(--accent);
+      background:var(--accent);
       border-radius:10px;
-      padding:9px 12px;
+      padding:9px 18px;
       cursor:pointer;
       font-weight:650;
-      color:var(--ink);
+      color:#fff;
     }
 
     .btn:hover{
-      border-color:var(--accent);
-      color:var(--accent);
+      opacity:.9;
     }
 
     .foot{
@@ -229,8 +229,8 @@
 </head>
 <body>
   <main class="page">
-    <h1>宏利 &amp; 友邦保费预缴优惠计算</h1>
-    <p class="subtitle">黄色单元格可修改，表格会按所填缴付年期自动生成并计算结果。</p>
+    <h1>保费预缴优惠计算（宏利 & 友邦 & 安盛）</h1>
+    <p class="subtitle">填写黄色单元格后，点击“查看”生成预缴利息表格。</p>
 
     <section class="sheet" id="calculator" data-premium="10000" data-years="5" data-rate="4">
       <div class="sheet-head">
@@ -269,24 +269,17 @@
                 </div>
               </td>
             </tr>
-
-            <tr class="header-row">
-              <td class="blank">&nbsp;</td>
-              <td>提前缴纳总保费</td>
-              <td>可获取的保证利息</td>
-            </tr>
           </tbody>
         </table>
 
         <div class="actions">
-          <button class="btn reset" type="button">恢复原始数值</button>
-          <button class="btn print" type="button">打印 / 另存为 PDF</button>
+          <button class="btn view" type="button">查看</button>
         </div>
       </div>
     </section>
 
     <p class="foot">
-      说明：预缴利率以百分比输入，例如输入 4 即代表 4%。第 1 年利息 = 提前缴纳总保费 × 预缴利率；后续年度利息 =（当年提前缴纳总保费 + 之前累计保证利息）× 预缴利率。
+      说明：预缴利率以百分比输入，例如输入 4 即代表 4%。点击“查看”后，下方会显示提前缴纳总保费、可获取的保证利息、总获保证利息，以及相等于首年保费的比例。
     </p>
   </main>
 
@@ -307,13 +300,25 @@
       const ratePercent = Number(sheet.querySelector('.rate').value || 0);
       const rate = ratePercent / 100;
 
+      // 每次点击查看前，先删除旧的计算结果
       tbody.querySelectorAll('.generated-row').forEach(row => row.remove());
+
+      // 点击查看后才生成表头
+      const headerRow = document.createElement('tr');
+      headerRow.className = 'generated-row header-row';
+      headerRow.innerHTML = `
+        <td class="blank">&nbsp;</td>
+        <td>提前缴纳总保费</td>
+        <td>可获取的保证利息</td>
+      `;
+      tbody.appendChild(headerRow);
 
       let interests = [];
 
       for (let i = 1; i < years; i++) {
         const prepaid = premium * (years - i);
         const priorInterest = interests.reduce((a, b) => a + b, 0);
+
         const interest = i === 1
           ? prepaid * rate
           : (prepaid + priorInterest) * rate;
@@ -349,23 +354,7 @@
       tbody.appendChild(noteRow);
     }
 
-    document.querySelectorAll('input').forEach(input => {
-      input.addEventListener('input', buildRows);
-    });
-
-    document.querySelector('.reset').addEventListener('click', () => {
-      const sheet = document.getElementById('calculator');
-
-      sheet.querySelector('.premium').value = sheet.dataset.premium;
-      sheet.querySelector('.years').value = sheet.dataset.years;
-      sheet.querySelector('.rate').value = sheet.dataset.rate;
-
-      buildRows();
-    });
-
-    document.querySelector('.print').addEventListener('click', () => window.print());
-
-    buildRows();
+    document.querySelector('.view').addEventListener('click', buildRows);
   </script>
 </body>
 </html>
